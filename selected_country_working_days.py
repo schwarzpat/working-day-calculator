@@ -1,33 +1,35 @@
 import pandas as pd
-from datetime import datetime
+fimport pandas as pd
 
-# Load the file
-df = pd.read_csv('/data/generated_holidays.csv')
+country_filter = ['LU', 'DK', 'SE']
 
-# Display the first few rows of the dataframe to understand its structure
-df.head()
-
-# Filter out the holidays of specified countries
-countries = ['UK', 'DK', 'SE', 'FI', 'NO']
-df = df[df['country'].isin(countries)]
+# Load the original file
+df_all = pd.read_csv('/Users/patrickschwarz/Downloads/generated_holidays.csv')
 
 # Convert the 'ds' column to datetime
-df['ds'] = pd.to_datetime(df['ds'])
+df_all['ds'] = pd.to_datetime(df_all['ds'])
 
 # Drop duplicates (keep the first occurrence)
-df = df.drop_duplicates(subset=['ds', 'country'], keep='first')
+df_all = df_all.drop_duplicates(subset=['ds', 'country'], keep='first')
 
 # Set the 'ds' column as the index
-df.set_index('ds', inplace=True)
+df_all.set_index('ds', inplace=True)
 
-# Count the weekdays that are not holidays
-weekday_count = {}
+# Get all unique country codes
+all_countries = df_all['country'].unique()
 
-for country in countries:
-    df_country = df[df['country'] == country]
+# Repeat the procedure for all countries
+all_weekday_count = {}
+
+for country in all_countries:
+    df_country = df_all[df_all['country'] == country]
     start_date = df_country.index.min()
     end_date = df_country.index.max()
     
+    # Check if start_date or end_date is NaT
+    if pd.isnull(start_date) or pd.isnull(end_date):
+        continue
+
     all_days = pd.date_range(start=start_date, end=end_date, freq='B')
     all_days = pd.Series(all_days, name='ds')
     all_days = all_days.to_frame()
@@ -39,7 +41,12 @@ for country in countries:
     holidays = df_country.index
     all_days['holiday'] = all_days['ds'].isin(holidays)
     
-    weekday_count[country] = all_days.groupby('month')['holiday'].apply(lambda x: (~x).sum())
+    all_weekday_count[country] = all_days.groupby('month')['holiday'].apply(lambda x: (~x).sum())
 
-weekday_count
+# Convert the dictionary to a dataframe
+df_working_days = pd.concat(all_weekday_count, names=['country', 'month']).reset_index(name='working_days')
 
+# Filter the dataframe by the provided country codes
+df_filtered = df_working_days[df_working_days['country'].isin(country_filter)]
+
+df_filtered
