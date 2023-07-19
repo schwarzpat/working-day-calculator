@@ -1,10 +1,9 @@
 import pandas as pd
-fimport pandas as pd
 
-country_filter = ['LU', 'DK', 'SE']
+country_filter = ['DE','SE','LU','FI','GB']
 
 # Load the original file
-df_all = pd.read_csv('/Users/patrickschwarz/Downloads/generated_holidays.csv')
+df_all = pd.read_csv('working-day-calculator/data/generated_holidays.csv')
 
 # Convert the 'ds' column to datetime
 df_all['ds'] = pd.to_datetime(df_all['ds'])
@@ -49,4 +48,11 @@ df_working_days = pd.concat(all_weekday_count, names=['country', 'month']).reset
 # Filter the dataframe by the provided country codes
 df_filtered = df_working_days[df_working_days['country'].isin(country_filter)]
 
-df_filtered
+# Pivot the dataframe to have a column for each country code
+df_pivot = df_filtered.pivot(index='month', columns='country', values='working_days')
+df_pivot.reset_index(inplace=False)
+
+
+df_pivot.to_csv('working-day-calculator/filtered_pivot_example.csv')
+
+df_pivot
