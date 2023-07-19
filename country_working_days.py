@@ -1,6 +1,6 @@
 import pandas as pd
 
-country_filter = ['DE','SE','LU','FI','GB']
+country_filter = ['DE','SE']
 
 # Load the original file
 df_all = pd.read_csv('working-day-calculator/data/generated_holidays.csv')
@@ -53,6 +53,6 @@ df_pivot = df_filtered.pivot(index='month', columns='country', values='working_d
 df_pivot.reset_index(inplace=False)
 
 
-df_pivot.to_csv('working-day-calculator/filtered_pivot_example.csv')
+df_pivot.to_csv('working-day-calculator/filtered_pivot_example_DE_SE.csv')
 
 df_pivot
